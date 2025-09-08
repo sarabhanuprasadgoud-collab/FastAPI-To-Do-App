@@ -10,7 +10,7 @@ router = APIRouter()
 
 @router.get("/")
 async def get_all_todos():
-  data = collection.find()
+  data = collection.find({"is_deleted": False})
   return all_tasks(data)
 
 @router.post("/")
