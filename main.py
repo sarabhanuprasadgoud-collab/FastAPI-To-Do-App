@@ -17,7 +17,7 @@ async def get_all_todos():
 async def create_task(new_task: Todo):
   try:
     resp = collection.insert_one(dict[new_task])
-    return { "status_code":200, "id": str(resp.inserted_id) }
+    return { "status_code":200, "_id": str(resp.inserted_id) }
   except Exception as e:
     return HTTPException(status_code=500, detail=f"Some error occured {e}")
 
@@ -25,12 +25,24 @@ async def create_task(new_task: Todo):
 async def update_task(task_id:str, updated_task: Todo):
   try:
     id = ObjectId(task_id)
-    existing_doc = collection.find_one({"id": id, "is_deleted": False})
+    existing_doc = collection.find_one({"_id": id, "is_deleted": False})
     if not existing_doc:
       return HTTPException(status_code=404, detail=f"Task does not exists")
     updated_task.update_at = datetime.timestamp(datetime.now())
-    resp = collection.update_one({"id": id}, {"$set": dict(updated_task)})
-    return { "status_code":200, "message": "Task Updated successfully", "id": str(resp.updated_id) }
+    resp = collection.update_one({"_id": id}, {"$set": dict(updated_task)})
+    return { "status_code":200, "message": "Task Updated successfully" }
+  except Exception as e:
+    return HTTPException(status_code=500, detail=f"Some error occured {e}")
+
+@router.delete("/{task_id")
+async def delete_task(task_id:str):
+  try:
+    id = ObjectId(task_id)
+    existing_doc = collection.find_one({"_id": id, "is_deleted": False})
+    if not existing_doc:
+      return HTTPException(status_code=404, detail=f"Task does not exists")
+    resp = collection.update_one({"_id": id}, {"$set": {"is_deleted": True}})
+    return { "status_code":200, "message": "Task Deleted successfully" }
   except Exception as e:
     return HTTPException(status_code=500, detail=f"Some error occured {e}")
     
